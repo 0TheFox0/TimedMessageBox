@@ -6,6 +6,8 @@
 #include <QTimer>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QMutex>
+
 class TimedMessageBox : public QDialog
 {
     Q_OBJECT
@@ -20,13 +22,14 @@ public:
     inline static void setCount(int value){count = value;}
 
 signals:
-    
+
 public slots:
 private slots:
     void startAnimation();
     void doHide();
 private:
     static int count;
+    static QMutex mutex;
     QHBoxLayout _layout;
     QLabel _icon;
     QLabel _message;

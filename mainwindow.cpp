@@ -16,5 +16,4 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     TimedMessageBox* t = new TimedMessageBox(this,"Hola",TimedMessageBox::Warning);
-    t->show();
 }

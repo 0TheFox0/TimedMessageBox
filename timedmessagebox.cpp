@@ -4,9 +4,11 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QStyle>
+#include <QMutexLocker>
 
 #include <QDebug>
 int TimedMessageBox::count = 0;
+QMutex TimedMessageBox::mutex;
 
 TimedMessageBox::TimedMessageBox(QWidget *parent, QString message, Icons icon) :
     QDialog(parent),
@@ -14,9 +16,8 @@ TimedMessageBox::TimedMessageBox(QWidget *parent, QString message, Icons icon) :
     _message(message,this),
     _layout(this)
 {
-    count++;
     parent->setFocus();
-    this->setWindowFlags(this->windowFlags()^Qt::FramelessWindowHint);
+    this->setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
 
     _icon.setPixmap(getIcon(icon));
 
@@ -24,7 +25,7 @@ TimedMessageBox::TimedMessageBox(QWidget *parent, QString message, Icons icon) :
     _layout.addWidget(&_message);
 
     this->setLayout(&_layout);
-
+    this->show();
     QTimer::singleShot(0,this,SLOT(startAnimation()));
 }
 
@@ -35,6 +36,8 @@ TimedMessageBox::~TimedMessageBox()
 
 void TimedMessageBox::startAnimation()
 {
+    QMutexLocker locker(&mutex);
+    count++;
     QRect dr= QApplication::desktop()->rect();
     this->move(dr.right()-this->size().width(),dr.bottom());
     QPropertyAnimation *ani = new QPropertyAnimation(this,"pos",this);
@@ -42,7 +45,7 @@ void TimedMessageBox::startAnimation()
     connect(ani,SIGNAL(finished()),this,SLOT(doHide()));
     ani->setStartValue(this->pos());
     ani->setEndValue(QPoint(this->pos().x(),dr.bottom()-this->frameGeometry().height()-this->frameGeometry().height()*count));
-    ani->setDuration(1000);
+    ani->setDuration(500);
     ani->start();
 }
 
@@ -53,7 +56,7 @@ void TimedMessageBox::doHide()
     connect(ani,SIGNAL(finished()),this,SLOT(deleteLater()));
     ani->setStartValue(1);
     ani->setEndValue(0);
-    ani->setDuration(4000);
+    ani->setDuration(5000);
     ani->start();
 }
 
